@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 
-const Navbar = ({ activeTab, setActiveTab }) => {
+const Navbar = ({ activeTab, setActiveTab,  className  }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -11,7 +11,7 @@ const Navbar = ({ activeTab, setActiveTab }) => {
   };
 
   return (
-    <nav className="navbar">
+    <nav className={`navbar ${className}`}>
       <div className="navbar-brand">Workshop Management</div>
       
       <ul className="navbar-nav">
@@ -46,3 +46,4 @@ const Navbar = ({ activeTab, setActiveTab }) => {
 };
 
 export default Navbar;
+

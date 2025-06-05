@@ -94,6 +94,7 @@ const AddWorkshop = () => {
               name="subject"
               value={formData.subject}
               onChange={handleChange}
+              placeholder='React Workshop'
               required
             />
           </div>
@@ -142,6 +143,7 @@ const AddWorkshop = () => {
             name="technology"
             value={formData.technology}
             onChange={handleChange}
+            placeholder=''
             className="auto-expand"
     rows={1}
     required

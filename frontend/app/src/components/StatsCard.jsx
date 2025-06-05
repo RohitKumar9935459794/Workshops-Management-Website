@@ -5,15 +5,20 @@ import './StatsCard.css';
 const StatsCard = ({ title, value, loading, isLabel = false }) => {
   return (
     <div className={`stats-card ${isLabel ? 'label-card' : ''}`}>
-      <h3>{title}</h3>
-      {loading ? (
+    {loading ? (
+      <>
+        <h3>{title}</h3>
         <div className="stats-loader"></div>
-      ) : (
-        <div className={`stats-value ${isLabel ? 'label-value' : ''}`}>
-          {value}
-        </div>
-      )}
-    </div>
+      </>
+  ) : (
+    <h3>
+      {title}{" "}
+      <span className={`stats-value ${isLabel ? 'label-value' : ''}`}>
+        {value}
+      </span>
+    </h3>
+  )}
+</div>
   );
 };
 
