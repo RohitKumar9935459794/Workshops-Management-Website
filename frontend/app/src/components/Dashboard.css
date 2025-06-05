@@ -3,18 +3,33 @@
   min-height: 100vh;
   width: 100%;
   padding: 60px 40px;
-  background-color: #ffffff;
+  background-color: #f5f9fd;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Lato','Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   box-sizing: border-box;
 }
 
 /* Main title */
 .dashboard h1 {
   color: #2c3e50;
-  font-size: 2.8rem;
-  margin-bottom: 50px;
+  font-size: 2rem;
+  margin-bottom: 40px;
   text-align: center;
+}
+
+.dashboard-description{
+  color: #41566c;
+  border-left: 4px solid  #41566c ;
+  margin: 10px auto; 
+  padding: 0px 20px 0px 20px;
+  align-items: center;
+  text-align: center;
+  font-style: italic;
+  position: relative;
+  width: 60%;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(25, 69, 113, 0.259);
+background-color: #bfc7d02b;
 }
 
 /* Year selector area */
@@ -77,4 +92,54 @@
   padding: 50px;
   color: #7f8c8d;
   font-size: 1.3rem;
+}
+
+.custom-year-input {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.custom-year-input:hover {
+  border-color: #888;
+}
+
+.custom-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+  margin: 0 0 10px 0;
+}
+
+.custom-header button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 5px 10px;
+}
+
+.custom-header button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.custom-header span {
+  font-weight: bold;
+}
+
+.year-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  margin-top: 30px;
+}
+
+.year-selector label {
+  font-weight: 500;
 }

@@ -81,25 +81,27 @@ const ParticipantTable = () => {
 
   return (
     <div className="participant-table-container">
-    
-
-      <div className="stats-wrapper">
-  <div className="stats-card-container">
-    <StatsCard title="Total Participants" value={totalParticipants} loading={loading} />
-  </div>
-</div>
-   <select
-  value={downloadFormat}
-  onChange={(e) => setDownloadFormat(e.target.value)}
-  className="format-selector"
->
-  <option value="excel">Excel</option>
-  <option value="pdf">PDF</option>
-</select>
+    <div className="header-controls">
+      <div className="download-controls">
+      <select
+        value={downloadFormat}
+        onChange={(e) => setDownloadFormat(e.target.value)}
+        className="format-selector">
+        <option value="excel">Excel</option>
+        <option value="pdf">PDF</option>
+    </select>
       <button onClick={() => downloadParticipantReports(filters, downloadFormat)} className="download-button">
-  Download Report
-</button>
+          Download Report
+      </button>
+    </div>
 
+    <div >
+      <div >
+        <StatsCard title="Total Participants:" value={totalParticipants} loading={loading} />
+      </div>
+    </div>
+
+    </div>
       <div className="filters">
         <select onChange={(e) => handleFilterChange(e, 'subject')} value={filters.subject || 'All'}>
           <option value="All">All Subjects</option>

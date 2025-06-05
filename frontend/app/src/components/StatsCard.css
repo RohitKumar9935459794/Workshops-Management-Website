@@ -2,7 +2,7 @@
 .stats-card {
   background: white;
   border-radius: 8px;
-  padding: 1rem;
+  padding: 0.5rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   text-align: center;
   flex: 1;
@@ -11,14 +11,15 @@
 
 .stats-card h3 {
   margin: 0 0 0.5rem 0;
-  font-size: 2rem;
-  color: #565151;
+  font-size: 1.5rem;
+  color: #393535;
+
 }
 
 .stats-value {
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   font-weight: bold;
-  color: #333;
+  color: #393535;
 }
 
 .label-card {

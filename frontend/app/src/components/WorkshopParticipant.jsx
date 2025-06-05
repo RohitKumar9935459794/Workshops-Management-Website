@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useState} from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import { getParticipantswithId } from '../services/api';
 import './ParticipantTable.css';
 import StatsCard from './StatsCard';
@@ -9,6 +9,9 @@ const WorkshopParticipant = () => {
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalParticipants, setTotalParticipants] = useState(0);
+  const location = useLocation();
+  const { subject, from, till, centre, speaker } = location.state || {};
+
 
   const [pagination, setPagination] = useState({
     current_page: 1,
@@ -58,10 +61,13 @@ const handlePrevPage = () => {
 
   return (
     <div className="participant-table-container">
-      <div className="stats-wrapper">
+      
+      <div className="headerline">
+        <div className="stats-wrapper">
         <div className="stats-card-container">
-          <StatsCard title={`Participants in Workshop ${workshop_id}`} value={totalParticipants} loading={loading} />
+          <StatsCard title={`Participants in ${subject} with ID: ${workshop_id} held from ${from} to ${till} at ${centre} Centre taken by ${speaker}:`} value={totalParticipants} loading={loading} />
         </div>
+      </div>
       </div>
 
       {loading ? (

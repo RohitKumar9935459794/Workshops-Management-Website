@@ -95,25 +95,31 @@ const handlePrevPage = () => {
 
   return (
     <div className="workshop-table-container">
-      <div className="stats-wrapper">
-  <div className="stats-card-container">
-    <StatsCard title="Total Workshops" value={totalWorkshops} loading={loading} />
-  </div>
-</div>
-      <select
-  value={downloadFormat}
-  onChange={(e) => setDownloadFormat(e.target.value)}
-  className="format-selector"
->
-  <option value="excel">Excel</option>
-  <option value="pdf">PDF</option>
-</select>
-      <button onClick={() => downloadWorkshopReports(filters, downloadFormat)} className="download-button">
-  Download Report
-</button>
-     
+      
+
+    <div className="header-controls">
+      <div className="download-controls">
+        <select
+          value={downloadFormat}
+          onChange={(e) => setDownloadFormat(e.target.value)}
+          className="format-selector"
+        >
+          <option value="excel">Excel</option>
+          <option value="pdf">PDF</option>
+        </select>
+        <button onClick={() => downloadWorkshopReports(filters, downloadFormat)} className="download-button">
+          Download Report
+        </button>
+      </div>
+      <div >
+        <div >
+          <StatsCard title="Total Workshops:" value={totalWorkshops} loading={loading} />
+        </div>
+      </div>
+    </div>
 
       <div className="filters">
+      <small className="note">Workshops are shown in order of Date they started.</small><br/>
         <select onChange={(e) => handleFilterChange(e, 'subject')} value={filters.subject || 'All'}>
           <option value = 'All'>All Subjects</option>
           {filterOptions.subjects?.map((sub, i) => (
@@ -177,12 +183,8 @@ const handlePrevPage = () => {
         <table className="workshop-table">
           <thead>
             <tr>
-              <th>ID
-                {/* <small className="input-note">
-    Click on Workshop ID to show participant details.
-  </small> */}
-              </th>
-              <th>Subject</th>
+              <th>ID</th>
+              <th>Subject </th>
               <th>From Date</th>
               <th>Till Date</th>
               <th>Technology</th>
@@ -199,7 +201,7 @@ const handlePrevPage = () => {
             {workshops.length > 0 ? (
               workshops.map(w => (
                 <tr key={w.workshop_id}>
-                  <td><Link to={`/workshops/${w.workshop_id}/participants`}>{w.workshop_id}</Link></td>
+                  <td>{w.workshop_id}</td>
                   <td>{w.subject}</td>
                   <td>{w.from_date}</td>
                   <td>{w.till_date}</td>
@@ -214,8 +216,9 @@ const handlePrevPage = () => {
                     <button className="add-participants-button" onClick={() => navigate('/upload-participants', { state: { workshopId: w.workshop_id } })}>Add Participants</button>)
                   : (<button
   className="view-participants-button"
-  onClick={() => navigate(`/workshops/${w.workshop_id}/participants`)}
->
+  onClick={() => navigate(`/workshops/${w.workshop_id}/participants`, 
+    { state: { subject: w.subject, from: w.from_date, till: w.till_date, centre: w.centre, speaker: w.speakers }}
+    )}>
   View Participants
 </button>)
                     }</td>

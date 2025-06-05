@@ -1,18 +1,22 @@
 .workshop-table-container {
-  padding: 10px;
+  padding: 0px;
 }
 
 .workshop-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .workshop-table th, .workshop-table td {
   padding: 5px;
   border: 1px solid #ccc;
   text-align: left;
+  word-wrap: break-word;
 }
 
+.workshop-table th:nth-child(1), 
+.workshop-table td:nth-child(1) { width: 130px; } 
 
 .workshop-table th {
   background-color: #f0f0f0;
@@ -92,4 +96,41 @@
 
 .view-participants-button:hover {
   background-color: #1b5e20;
+}
+
+
+
+.header-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap; /* Optional for responsiveness */
+}
+
+.download-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.format-selector {
+  padding: 0.4rem 0.8rem;
+  font-size: 1rem;
+}
+
+.download-button {
+  padding: 0.4rem 0.8rem;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.note {
+  margin: 0px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: rgb(193, 69, 69);
 }

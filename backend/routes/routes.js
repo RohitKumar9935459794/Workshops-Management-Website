@@ -209,8 +209,8 @@ router.get('/workshops/reports', async (req, res) => {
         let queryParams = [];
 
         if (from_date && till_date) {
-            filters.push(`from_date >= ? AND till_date <= ?`);
-            queryParams.push(from_date, till_date);
+            filters.push(`from_date <= ? AND till_date >= ?`);
+            queryParams.push(till_date, from_date);
           }
         if (subject) {
             filters.push(`subject = ?`);

@@ -1,4 +1,4 @@
-/* src/App.css */
+/* src/App.css
 .app-layout {
   display: flex;
   min-height: 100vh;
@@ -6,8 +6,89 @@
 
 .main-content {
   flex: 1;
-  margin-left: 250px; /* Should match your navbar width */
+  margin-left: 250px; 
   padding: 20px;
-  background-color: #f5f7fa; /* Optional: light background for content */
+  background-color: #f5f7fa; 
   
+} */
+
+
+
+
+
+/* update */
+/* App Container */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Content Wrapper */
+.content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.3s ease;
+  margin-left: 0;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  padding: 20px;
+  transition: all 0.3s ease;
+  
+}
+.menu-open .content-wrapper {
+  margin-left: 280px;
+}
+
+/* Menu Styles */
+.mobile-nav {
+  width: 280px;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: -280px;
+  background-color: #fff;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  transition: left 0.3s ease;
+  padding-top: 70px;
+}
+
+.mobile-nav.open {
+  left: 0;
+}
+
+/* Overlay */
+.menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+}
+
+.menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .menu-open .content-wrapper {
+    margin-left: 0;
+  }
+  
+  .menu-overlay.open {
+    display: block;
+  }
 }
