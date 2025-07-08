@@ -7,6 +7,7 @@
   text-align: center;
   flex: 1;
   margin: 0 0.5rem;
+  cursor: pointer;
 }
 
 .stats-card h3 {

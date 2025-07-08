@@ -28,7 +28,7 @@ const Auth = () => {
 
     if (isValid) {
       localStorage.setItem('isAuthenticated', 'true');
-      navigate('/dashboard');
+      navigate('/dashboard');//////// some changes are here ********************* 1/07
     } else {
       setError('Invalid username or password');
     }

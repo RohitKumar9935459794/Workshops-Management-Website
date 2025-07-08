@@ -15,6 +15,8 @@ const WorkshopTable = () => {
   const [loading, setLoading] = useState(true);
   const [downloadFormat, setDownloadFormat] = useState('excel'); // default format
   const [totalWorkshops, setTotalWorkshops] = useState(0);
+  const [totalParticipants, setTotalParticipants] = useState(0);
+  
  
 
   // Fetch filter options on mount
@@ -115,6 +117,9 @@ const handlePrevPage = () => {
         <div >
           <StatsCard title="Total Workshops:" value={totalWorkshops} loading={loading} />
         </div>
+        <div >
+        <StatsCard title="Total Participants:" value={totalParticipants} loading={loading} />
+      </div>
       </div>
     </div>
 

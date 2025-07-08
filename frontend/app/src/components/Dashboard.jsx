@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { getWorkshopStats } from "../services/api";
 import StatsCard from "./StatsCard";
 import DatePicker from "react-datepicker";
+import { useLocation, useNavigate } from 'react-router-dom';
 import "react-datepicker/dist/react-datepicker.css";
 import "./Dashboard.css";
 
@@ -10,6 +11,9 @@ const Dashboard = () => {
   const [stats, setStats] = useState({});
   const [selectedYear, setSelectedYear] = useState(new Date());
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
+  const navigate = useNavigate();
+  
 
   const year = selectedYear.getFullYear();
 
@@ -48,13 +52,15 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       <div className="heading">
-        <h1>NIELIT Workshop Management System</h1>
+        <h1>NIELIT Delhi Centre</h1>
       <div className="dashboard-description">
         Leader in the development of industry oriented quality education and
         training and be the country's premier Institution for examination and
         certification in the field of Information, Electronics and
         Communications Technology (IECT).
       </div>
+      <br/>
+       <h1>Workshop Management System</h1>
       </div>
       
 
@@ -99,16 +105,22 @@ const Dashboard = () => {
       ) : (
         <>
           <div className="stats-grid">
-            <StatsCard
+              <StatsCard
               title="Total Workshops: "
               value={stats.total_workshops}
               icon="📊"
-            />
+              onClick={() => navigate('/workshops')}
+            />         
+           
+            
             <StatsCard
               title="Total Participants: "
               value={stats.total_participants}
               icon="👥"
+               onClick={() => navigate('/participant-reports')}
             />
+         
+            
           </div>
           <div className="financial-range">
             From 1st April {year} to 31st March {year + 1}
