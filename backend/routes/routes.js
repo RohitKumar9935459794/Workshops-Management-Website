@@ -90,8 +90,78 @@ router.post('/workshops/new', async (req, res) => {
   }
 });
 
-// upload excel for workshop with workshop id
+
 //API 2
+// update workshop details 
+// API 2 - Update Workshop
+router.put('/workshops/:workshop_id', async (req, res) => {
+  const { workshop_id } = req.params;
+  const {
+    subject, from_date, till_date, duration, technology = [], project,
+    centre, mode, speaker_name = [], workshop_type, other1, other2, other3
+  } = req.body;
+
+  const connection = await db.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    // 1. Verify workshop exists
+    const [workshop] = await connection.query(
+      `SELECT workshop_id FROM workshop_details WHERE workshop_id = ?`,
+      [workshop_id]
+    );
+    
+    if (workshop.length === 0) {
+      return res.status(404).json({ error: "Workshop not found" });
+    }
+
+    // 2. Update workshop details in workshop_details
+    await connection.query(
+      `UPDATE workshop_details 
+       SET subject = ?, from_date = ?, till_date = ?, duration = ?, project = ?, 
+           centre = ?, mode = ?, workshopType = ?, otherOption1 = ?, otherOption2 = ?, otherOption3 = ?
+       WHERE workshop_id = ?`,
+      [subject, from_date, till_date, duration, project, centre, mode, 
+       workshop_type, other1, other2, other3, workshop_id]
+    );
+
+    // 3. Update technologies - delete existing and insert new
+    await connection.query(
+      `DELETE FROM workshop_technologies WHERE workshop_id = ?`,
+      [workshop_id]
+    );
+    for (const tech of technology) {
+      await connection.query(
+        `INSERT INTO workshop_technologies (workshop_id, technology) VALUES (?, ?)`,
+        [workshop_id, tech]
+      );
+    }
+
+    // 4. Update speakers - delete existing and insert new
+    await connection.query(
+      `DELETE FROM workshop_speakers WHERE workshop_id = ?`,
+      [workshop_id]
+    );
+    for (const speaker of speaker_name) {
+      await connection.query(
+        `INSERT INTO workshop_speakers (workshop_id, speaker_name) VALUES (?, ?)`,
+        [workshop_id, speaker]
+      );
+    }
+
+    await connection.commit();
+    res.json({ success: true, message: "Workshop updated!", workshop_id });
+  } catch (err) {
+    await connection.rollback();
+    res.status(500).json({ error: err.message });
+  } finally {
+    connection.release();
+  }
+});
+
+// upload excel for workshop with workshop id
+//API 3
 const upload = multer({ dest: 'uploads/' });
 // Upload participant data for workshop id
 router.post('/workshops/:workshopId/upload', upload.single('file'), async (req, res) => {
@@ -136,7 +206,7 @@ router.post('/workshops/:workshopId/upload', upload.single('file'), async (req, 
 });
 
 
-//API 3
+//API 4
 //fetching filters for participant reports as well as for workshop reports
 router.get('/workshops/filters', async (req, res) => {
     try {
@@ -163,7 +233,7 @@ router.get('/workshops/filters', async (req, res) => {
 
 
 // fetching total(participant, workshop) for session wise
-//API 4
+//API 5
 // get total workshops and participant in particular financial year
 router.get('/workshops/stats/:year', async (req, res) => {
     try {
@@ -198,7 +268,7 @@ router.get('/workshops/stats/:year', async (req, res) => {
 
 
 //view workshop details
-//API 5
+//API 6
 // Fetch workshops with filtering and pagination
 router.get('/workshops/reports', async (req, res) => {
     try {
@@ -253,8 +323,8 @@ router.get('/workshops/reports', async (req, res) => {
           w.project,
           w.centre,
           w.mode, 
-          GROUP_CONCAT(DISTINCT wt.technology) AS technologies,
-          GROUP_CONCAT(DISTINCT ws.speaker_name) AS speakers,
+          GROUP_CONCAT(DISTINCT wt.technology SEPARATOR ', ') AS technologies,
+          GROUP_CONCAT(DISTINCT ws.speaker_name SEPARATOR ', ') AS speakers,
           COUNT(DISTINCT p.regid) AS participant_count,
           w.workshoptype,
           w.otheroption1,
@@ -301,7 +371,7 @@ router.get('/workshops/reports', async (req, res) => {
 });
 
 // view participant details
-//API 6
+//API 7
 // to show all participants from all workshops with total counts of workshops and total participants (with/without filter only one api) by default filter is date from jan current year to till now
 router.get('/participants/reports', async (req, res) => {
     try {
@@ -395,7 +465,7 @@ router.get('/participants/reports', async (req, res) => {
     }
   });   
 
-//API 7
+//API 8
 // to show participants for particular workshop. view participant option.
 // Fetch participants for a specific workshop by its ID (VARCHAR) with pagination
 
@@ -472,7 +542,7 @@ router.get('/participants/:workshopId', async (req, res) => {
   
 
 
-//API 8 download reports
+//API 9 download reports
 //  to download filtered workshop reports as excel/pdf (one api format as query parameter)
 const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
@@ -483,36 +553,43 @@ router.get('/workshops/reports/download', async (req, res) => {
 
     let filters = [];
     let queryParams = [];
-
+    let filterDescriptions = [];//new
     if (from_date && till_date) {
       filters.push(`from_date >= ? AND till_date <= ?`);
       queryParams.push(from_date, till_date);
+      filterDescriptions.push(`Date Range: ${new Date(from_date).toLocaleDateString()} to ${new Date(till_date).toLocaleDateString()}`);
     }
     if (subject) {
       filters.push(`subject = ?`);
       queryParams.push(subject);
+      filterDescriptions.push(`Subject: ${subject}`);
     }
     if (project) {
       filters.push(`project = ?`);
       queryParams.push(project);
+      filterDescriptions.push(`Project: ${project}`);
     }
     if (centre) {
       filters.push(`centre = ?`);
       queryParams.push(centre);
+      filterDescriptions.push(`Centre: ${centre}`);
     }
     if (mode) {
       filters.push(`mode = ?`);
       queryParams.push(mode);
+      filterDescriptions.push(`Mode: ${mode}`);
     }
 
     if (technology) {
       filters.push(`wt.technology = ?`);
       queryParams.push(technology);
+      filterDescriptions.push(`Technology: ${technology}`);
     }
 
     if (speaker) {
       filters.push(`ws.speaker_name = ?`);
       queryParams.push(speaker);
+      filterDescriptions.push(`Speaker: ${speaker}`);
     }
 
     const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
@@ -527,8 +604,8 @@ router.get('/workshops/reports/download', async (req, res) => {
           w.project,
           w.centre,
           w.mode, 
-          GROUP_CONCAT(DISTINCT wt.technology) AS technologies,
-          GROUP_CONCAT(DISTINCT ws.speaker_name) AS speakers,
+          GROUP_CONCAT(DISTINCT wt.technology SEPARATOR ', ') AS technologies,
+          GROUP_CONCAT(DISTINCT ws.speaker_name SEPARATOR ', ') AS speakers,
           COUNT(DISTINCT p.regid) AS participant_count,
           w.workshoptype,
           w.otheroption1,
@@ -544,75 +621,393 @@ router.get('/workshops/reports/download', async (req, res) => {
     `;
 
     const [rows] = await db.query(sql, queryParams);
-    rows.forEach(workshop => {
-        workshop.from_date = new Date(workshop.from_date).toLocaleDateString('en-CA');
-        workshop.till_date = new Date(workshop.till_date).toLocaleDateString('en-CA');
+    // Format dates and ensure all values are strings
+    let formattedRows = rows.map(workshop => {
+      const formatted = {};
+      for (const key in workshop) {
+        if (workshop[key] instanceof Date) {
+          formatted[key] = workshop[key].toLocaleDateString('en-CA');
+        } else {
+          formatted[key] = String(workshop[key] || '');
+        }
+      }
+      return formatted;
     });
+    // rows.forEach(workshop => {
+    //     workshop.from_date = new Date(workshop.from_date).toLocaleDateString('en-CA');
+    //     workshop.till_date = new Date(workshop.till_date).toLocaleDateString('en-CA');
+    // });
 
+
+// Identify columns with all empty values
+const columnsToKeep = new Set();
+if (formattedRows.length > 0) {
+  // First get all possible columns
+  const allColumns = Object.keys(formattedRows[0]);
+  
+  // Check each column to see if it has any non-empty values
+  allColumns.forEach(column => {
+    const hasData = formattedRows.some(row => row[column] && row[column].trim() !== '');
+    if (hasData) {
+      columnsToKeep.add(column);
+    }
+  });
+}
+// Filter the rows to only keep columns with data
+formattedRows = formattedRows.map(row => {
+  const filteredRow = {};
+  columnsToKeep.forEach(column => {
+    filteredRow[column] = row[column];
+  });
+  return filteredRow;
+});
     if (format === 'excel') {
       // Generate Excel file
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Workshops');
 
-      worksheet.columns = Object.keys(rows[0] || {}).map(key => ({
-        header: key,
-        key: key,
-        width: 10
-      }));
+  // Track current row position
+  let currentRow = 1;
 
-      rows.forEach(row => {
-        worksheet.addRow(row);
+  // Add title row (merged cells)
+  const titleRow = worksheet.addRow(['NATIONAL INSTITUTE OF ELECTRONICS AND INFORMATION TECHNOLOGY, NIELIT DELHI CENTRE']);
+  titleRow.font = { bold: true, size: 16 };
+  titleRow.alignment = { vertical: 'middle', horizontal: 'center' };
+  worksheet.mergeCells(currentRow, 1, currentRow, Object.keys(formattedRows[0] || {}).length);
+  // border
+  titleRow.getCell(1).border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+  }
+  currentRow++;
+
+  // Add report title
+  const reportTitleRow = worksheet.addRow(['Workshop Report']);
+  reportTitleRow.font = { bold: true, size: 14 };
+  reportTitleRow.alignment = { vertical: 'middle', horizontal: 'center' };
+  worksheet.mergeCells(currentRow, 1, currentRow, Object.keys(formattedRows[0] || {}).length);
+  reportTitleRow.getCell(1).border = {
+     top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+  }
+  currentRow++;
+
+  // Add filter information if any filters applied
+  if (filterDescriptions.length > 0) {
+    const filterRow = worksheet.addRow(['Filtered on: ' + filterDescriptions.join(', ')]);
+    filterRow.font = { italic: true };
+    worksheet.mergeCells(currentRow, 1, currentRow, Object.keys(formattedRows[0] || {}).length);
+    filterRow.getCell(1).border = {
+       top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+    }
+    currentRow++;
+  }
+
+  // Dynamically create columns based on the first row's keys
+  if (formattedRows.length > 0) {
+    const headers = Object.keys(formattedRows[0]);
+    
+    // Set column headers and widths
+    worksheet.columns = headers.map(header => ({
+      header: header.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '), // Convert snake_case to Title Case
+      key: header,
+      width: Math.min(Math.max(header.length * 1.5, 10), 30) // Dynamic width based on header length
+    }));
+
+    // Style header row - now at the currentRow position
+    const headerRow = worksheet.getRow(currentRow);
+    headerRow.values = headers.map(header => 
+      header.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+    );
+    headerRow.font = { bold: true };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    // Add borders to header row
+    headerRow.eachCell((cell) => {
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+      };
+    });
+    currentRow++;
+
+    // Add data rows
+    formattedRows.forEach(row => {
+      const dataRow = worksheet.addRow(Object.values(row));
+      dataRow.alignment = { vertical: 'middle', wrapText: true };
+      // Add borders to each cell in the row
+      dataRow.eachCell((cell) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
       });
+      currentRow++;
+    });
 
-      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      res.setHeader('Content-Disposition', 'attachment; filename=workshop_report.xlsx');
+    //update title row
+    worksheet.getCell(1, 1).value = 'NATIONAL INSTITUTE OF ELECTRONICS AND INFORMATION TECHNOLOGY, NIELIT DELHI CENTRE';
+ 
+  } else {
+    worksheet.addRow(['No data available']);
+  }
 
-      await workbook.xlsx.write(res);
-      res.end();
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', 'attachment; filename=workshop_report.xlsx');
 
-    } else if (format === 'pdf') {
-  const doc = new PDFDocument({ margin: 30 });
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', 'attachment; filename=workshop_report.pdf');
-  doc.pipe(res);
+  await workbook.xlsx.write(res);
+  res.end();
+} else if (format === 'pdf') {
+    const doc = new PDFDocument({ 
+        margin: 30, 
+        size: 'A4', 
+        layout: 'landscape',
+        bufferPages: true // Enable page buffering for footer
+    });
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=workshop_report.pdf');
+    doc.pipe(res);
 
-  doc.fontSize(14).text('Workshop Report', { align: 'center' });
-  doc.moveDown();
+    // Title
+    doc.fontSize(16).font('Helvetica-Bold')
+       .text('NATIONAL INSTITUTE OF ELECTRONICS AND INFORMATION TECHNOLOGY, NIELIT DELHI CENTRE', {
+           align: 'center',
+           lineGap: 5
+       });
+    doc.moveDown(0.5);
 
-  if (rows.length > 0) {
-    const keys = Object.keys(rows[0]);
-
-    // Table header
-    doc.fontSize(10).font('Helvetica-Bold');
-    keys.forEach((key, i) => {
-      doc.text(key, { continued: i !== keys.length - 1, width: 100 });
+    // Report title
+    doc.fontSize(14).text('WORKSHOP REPORT', {
+        align: 'center',
+        lineGap: 5
     });
     doc.moveDown(0.5);
 
-    // Table rows
-    doc.font('Helvetica');
-    rows.forEach(row => {
-      keys.forEach((key, i) => {
-        doc.text(String(row[key]), { continued: i !== keys.length - 1, width: 100 });
-      });
-      doc.moveDown(0.5);
-    });
-  } else {
-    doc.text('No data available.');
-  }
-
-  doc.end();
-}else {
-      res.status(400).json({ success: false, message: "Invalid format. Use 'excel' or 'pdf'." });
+    // Filters applied
+    if (filterDescriptions.length > 0) {
+        doc.fontSize(10).font('Helvetica-Oblique')
+           .text(`Filtered on: ${filterDescriptions.join(', ')}`, {
+               align: 'center',
+               lineGap: 5
+           });
+        doc.moveDown(0.5);
     }
 
+    doc.moveDown(1);
+
+    if (formattedRows.length > 0) {
+        const headers = Object.keys(formattedRows[0]);
+        const headerTitles = headers.map(header => 
+            header.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+        );
+
+        // Table setup with improved text handling
+        const table = {
+            headers: headerTitles,
+            rows: formattedRows.map(row => headers.map(header => row[header] || ''))
+        };
+
+        // Table settings
+        const startX = 30;
+        let startY = doc.y + 20;
+        const rowHeight = 20;
+        //const headerRowHeight = 30;
+        const cellPadding = 5;
+        const lineHeight = 12;
+        
+        // Calculate column widths
+        const colWidths = table.headers.map((header, i) => {
+            const headerWidth = doc.font('Helvetica-Bold').widthOfString(header);
+            const contentWidths = table.rows.map(row => {
+                const text = String(row[i]);
+                return doc.font('Helvetica').widthOfString(text);
+            });
+            return Math.min(
+                Math.max(headerWidth, ...contentWidths) + (cellPadding * 2),
+                80 // Maximum column width
+            );
+        });
+
+        // Adjust columns to fit page width
+        const totalWidth = colWidths.reduce((sum, width) => sum + width, 0);
+        const availableWidth = doc.page.width - 60;
+        
+        if (totalWidth > availableWidth) {
+            const scaleFactor = availableWidth / totalWidth;
+            colWidths.forEach((width, i) => colWidths[i] = width * scaleFactor);
+        }
+
+        // Draw header
+        doc.font('Helvetica-Bold').fontSize(10);
+        let x = startX;
+        table.headers.forEach((header, i) => {
+            doc.rect(x, startY, colWidths[i], rowHeight).stroke();
+            doc.text(header, x + cellPadding, startY + cellPadding, {
+                width: colWidths[i] - (cellPadding * 2),
+                align: 'center',
+            });
+            x += colWidths[i];
+        });
+
+        startY += rowHeight+2;
+
+        // Draw rows with text wrapping
+        doc.font('Helvetica').fontSize(10);
+        
+        
+        table.rows.forEach(row => {
+            let maxLines = 1;
+            const rowTexts = [];
+            
+            // First pass to calculate required height
+            row.forEach((cell, i) => {
+                const text = String(cell);
+                const textHeight = doc.font('Helvetica')
+                    .heightOfString(text, {
+                        width: colWidths[i] - (cellPadding * 2)
+                    });
+                const lines = Math.ceil(textHeight / lineHeight);
+                if (lines > maxLines) maxLines = lines;
+                rowTexts.push(text);
+            });
+            
+            // Adjust row height if needed
+            const currentRowHeight = rowHeight * Math.max(1, maxLines);
+            
+            // Draw cells
+            x = startX;
+            rowTexts.forEach((text, i) => {
+                doc.rect(x, startY, colWidths[i], currentRowHeight).stroke();
+                doc.text(text, x + cellPadding, startY + cellPadding, {
+                    width: colWidths[i] - (cellPadding * 2),
+                    align: 'left',
+                    height: currentRowHeight - (cellPadding * 2),
+                    ellipsis: true
+                });
+                x += colWidths[i];
+            });
+            
+            startY += currentRowHeight;
+            
+            
+            // Page break if needed
+            if (startY > doc.page.height - 50) {
+                doc.addPage();
+                startY = 30;
+                
+                // Redraw header on new page
+                x = startX;
+                doc.font('Helvetica-Bold').fontSize(10);
+                table.headers.forEach((header, i) => {
+                    doc.rect(x, startY, colWidths[i], rowHeight).stroke();
+                    doc.text(header, x + cellPadding, startY + cellPadding, {
+                        width: colWidths[i] - (cellPadding * 2),
+                        align: 'center',
+                    });
+                    x += colWidths[i];
+                });
+                  startY += rowHeight+2;
+                doc.font('Helvetica').fontSize(10);
+            }
+        });
+
+        // Add footer at the bottom of the last page
+         // Footer
+        const totalCount = formattedRows.length;
+        doc.font('Helvetica-Bold')
+           .text(`Total Workshops: ${totalCount}`, doc.page.width - 150, doc.page.height - 30);
+    }
+    
+       else {
+            doc.fontSize(12).text('No data available', { align: 'center' });
+        }
+ doc.end();
+    } else {
+        res.status(400).json({ success: false, message: "Invalid format. Use 'excel' or 'pdf'." });
+      }
+
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
+      res.status(500).json({ success: false, message: error.message });
+    }
 });
 
 
-//API 9
+
+//       worksheet.columns = Object.keys(rows[0] || {}).map(key => ({
+//         header: key,
+//         key: key,
+//         width: 10
+//       }));
+
+//       rows.forEach(row => {
+//         worksheet.addRow(row);
+//       });
+
+//       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+//       res.setHeader('Content-Disposition', 'attachment; filename=workshop_report.xlsx');
+
+//       await workbook.xlsx.write(res);
+//       res.end();
+
+//     } else if (format === 'pdf') {
+//   const doc = new PDFDocument({ margin: 30 });
+//   res.setHeader('Content-Type', 'application/pdf');
+//   res.setHeader('Content-Disposition', 'attachment; filename=workshop_report.pdf');
+//   doc.pipe(res);
+
+//   doc.fontSize(14).text('Workshop Report', { align: 'center' });
+//   doc.moveDown();
+
+//   if (rows.length > 0) {
+//     const keys = Object.keys(rows[0]);
+
+//     // Table header
+//     doc.fontSize(10).font('Helvetica-Bold');
+//     keys.forEach((key, i) => {
+//       doc.text(key, { continued: i !== keys.length - 1, width: 100 });
+//     });
+//     doc.moveDown(0.5);
+
+//     // Table rows
+//     doc.font('Helvetica');
+//     rows.forEach(row => {
+//       keys.forEach((key, i) => {
+//         doc.text(String(row[key]), { continued: i !== keys.length - 1, width: 100 });
+//       });
+//       doc.moveDown(0.5);
+//     });
+//   } else {
+//     doc.text('No data available.');
+//   }
+
+//   doc.end();
+// }else {
+//       res.status(400).json({ success: false, message: "Invalid format. Use 'excel' or 'pdf'." });
+//     }
+
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: error.message });
+//   }
+// });
+
+
+
+
+
+
+
+//API 10
 //  to download filtered participant reports as excel/pdf 
 
 router.get('/participants/reports/download', async (req, res) => {
