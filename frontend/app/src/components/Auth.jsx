@@ -1,39 +1,34 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { registerUser, createUser } from '../services/api';
 import './Auth.css'; // Create this CSS file
 
 const Auth = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [usertype, setUsertype] = useState('admin'); // default usertype
   const [error, setError] = useState('');
   const navigate = useNavigate();
-
-  // Fixed credentials
-  const validCredentials = [
-    { username: 'admin1', password: 'pass123' },
-    { username: 'admin2', password: 'pass456' },
-    { username: 'admin3', password: 'pass789' },
-    { username: 'admin4', password: 'pass101' },
-    { username: 'admin5', password: 'pass112' }
-    // enter more 
-  ];
 
   const handleLogin = (e) => {
     e.preventDefault();
     setError('');
 
-    const isValid = validCredentials.some(
-      cred => cred.username === username && cred.password === password
-    );
+    try {
+      const res = await loginUser(email, password);
 
-    if (isValid) {
-      localStorage.setItem('isAuthenticated', 'true');
-      navigate('/dashboard');//////// some changes are here ********************* 1/07
-    } else {
-      setError('Invalid username or password');
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.msg || 'Login failed');
+      }
+
+      // Redirect on successful login
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.message);
     }
   };
-
   return (
     <div className="auth-container">
       <div className="auth-left">
@@ -50,11 +45,11 @@ const Auth = () => {
           <h2>Workshop Management Login</h2>
           <form onSubmit={handleLogin}>
             <div className="form-group">
-              <label>Username:</label>
+              <label>Email:</label>
               <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -67,10 +62,24 @@ const Auth = () => {
                 required
               />
             </div>
+            <div className="form-group">
+              <label>User Type:</label>
+              <select value={usertype} onChange={(e) => setUsertype(e.target.value)}>
+                <option value="admin">Admin</option>
+                <option value="subadmin">Subadmin</option>
+                <option value="student">Student</option>
+              </select>
+            </div>
+
             {error && <div className="error-message">{error}</div>}
+
             <button type="submit" className="login-btn">
               Login
             </button>
+
+            <div className="forgot-password">
+              <a href="/forgot-password">Forgot password?</a>
+            </div>
           </form>
         </div>
       </div>

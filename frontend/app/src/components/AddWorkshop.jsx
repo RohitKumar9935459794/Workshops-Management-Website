@@ -88,7 +88,7 @@ const AddWorkshop = () => {
       
       <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Subject:</label>
+            <label>Subject:<span> *</span> </label>
             <input
               type="text"
               name="subject"
@@ -100,7 +100,7 @@ const AddWorkshop = () => {
           </div>
           <div className="form-row">
             <div className="form-group">
-             <label>From Date:</label>
+             <label>From Date:<span> *</span></label>
               <input
                 type="date"
                 name="from_date"
@@ -113,7 +113,7 @@ const AddWorkshop = () => {
           
           
           <div className="form-group">
-            <label>Till Date:</label>
+            <label>Till Date:<span> *</span></label>
             <input
               type="date"
               name="till_date"
@@ -126,7 +126,7 @@ const AddWorkshop = () => {
         
           
             <div className="form-group">
-            <label>Duration (in hours):</label>
+            <label>Duration (in hours):<span> *</span></label>
             <input
               type="number"
               name="duration"
@@ -138,7 +138,7 @@ const AddWorkshop = () => {
            </div>
           <div className="form-row">
           <div className="form-group">
-            <label>Technology:</label>
+            <label>Technology:<span> *</span></label>
             <textarea
             name="technology"
             value={formData.technology}
@@ -171,14 +171,14 @@ const AddWorkshop = () => {
         
       <div className="form-row">
           <div className="form-group">
-            <label>Center:</label>
+            <label>Centre:<span> *</span></label>
             <select
               name="centre"
               value={formData.centre}
               onChange={handleChange}
               required
             >
-              <option value="">Select Center</option>
+              <option value="">Select Centre</option>
               <option value="Janakpuri">Janakpuri</option>
               <option value="Karkardooma">Karkardooma</option>
               <option value="Inderlok">Inderlok</option>
@@ -187,7 +187,7 @@ const AddWorkshop = () => {
           
           
             <div className="form-group">
-            <label>Mode:</label>
+            <label>Mode:<span> *</span></label>
             <select
               name="mode"
               value={formData.mode}
@@ -204,7 +204,7 @@ const AddWorkshop = () => {
           <div className="form-row">
 
           <div className="form-group">
-            <label>Speaker Name:</label>
+            <label>Speaker Name:<span> *</span></label>
              <textarea
     name="speaker_name"
     value={formData.speaker_name}

@@ -33,6 +33,10 @@
     font-weight: 500;
     color: #34495e;
   }
+
+   .form-group label span{
+      color: rgb(193, 69, 69);
+   }
   
   .form-group input,
   .form-group select,
