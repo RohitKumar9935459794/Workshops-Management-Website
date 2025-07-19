@@ -2,6 +2,59 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:5000/api'; // Update with your backend URL
 
+// Register a new user
+export const registerUser = async ({ username, email, password, usertype }) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password, usertype }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.msg || 'Registration failed');
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Login a user
+export const loginUser = async ({ email, password }) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.msg || 'Login failed');
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Access protected route
+export const getProtectedData = async (token) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/protected`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`, // JWT from localStorage
+      },
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.msg || 'Unauthorized');
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
 //API 1: adding new workshop data
 export const addWorkshop = async (workshopData) => {
   try {
