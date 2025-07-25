@@ -19,22 +19,59 @@ export const registerUser = async ({ username, email, password, usertype }) => {
   }
 };
 
-// Login a user
-export const loginUser = async ({ email, password }) => {
+// // // Login a user
+// export const loginUser = async ({ email, password }) => {
+//   try {
+//     const response = await fetch(`${API_BASE_URL}/login`, {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ email, password }),
+//     });
+
+//     const data = await response.json();
+//     if (!response.ok) throw new Error(data.msg || 'Login failed');
+//     return data;
+//   } catch (error) {
+//     throw error;
+//   }
+// };
+
+// ------------------- Login -------------------
+export const loginUser = async (email, password) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/login`, {
+    const res = await fetch(`${API_BASE_URL}/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({ email, password }),
     });
 
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.msg || 'Login failed');
-    return data;
-  } catch (error) {
-    throw error;
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.msg || 'Login failed');
+    }
+
+    return data; // contains token, user info, etc.
+  } catch (err) {
+    throw err;
   }
 };
+
+
+// // src/services/api.js
+// export const loginUser = async (email, password) => {
+//   const res = await fetch('http://localhost:5000/api/login', {
+//     method: 'POST',
+//     headers: {
+//       'Content-Type': 'application/json',
+//     },
+//     body: JSON.stringify({ email, password }),
+//   });
+
+//   return res;
+// };
 
 // Access protected route
 export const getProtectedData = async (token) => {
@@ -53,6 +90,27 @@ export const getProtectedData = async (token) => {
     throw error;
   }
 };
+
+// // Api 9: update workshop details
+// // In your api.js file
+// export const updateWorkshop = async (workshopData) => {
+//   try {
+//     const response = await axios.put(`/api/workshops/${workshopData.workshop_id}`, workshopData);
+//     return response.data;
+//   } catch (error) {
+//     throw error;
+//   }
+// };
+
+// // Api 10 : update particiapnat details
+// export const updateParticipant = async (participantData) => {
+//   try {
+//     const response = await axios.put(`/api/participants/${participantData.REGID}`, participantData);
+//     return response.data;
+//   } catch (error) {
+//     throw error;
+//   }
+// };
 
 
 //API 1: adding new workshop data
@@ -244,6 +302,33 @@ export const downloadParticipantReports = async (filters, format) => {
   } catch (error) {
     console.error('Error downloading Participant report:', error);
     alert('Failed to download report. Please try again later.');
+  }
+};
+
+// ✅ FIXED: update workshop details
+export const updateWorkshop = async (workshopData) => {
+  try {
+    const response = await axios.put(
+      `${API_BASE_URL}/workshops/${workshopData.workshop_id}`,
+      workshopData
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error updating workshop:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Failed to update workshop');
+  }
+};
+
+export const updateParticipant = async (participantData, workshopData) => {
+  try {
+    const response = await axios.put(
+      `${API_BASE_URL}/participants/${workshopData.workshop_id}/${participantData.REGID}`,
+      participantData
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error updating participant:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Failed to update participant');
   }
 };
 

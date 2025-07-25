@@ -69,3 +69,17 @@
 .submit-btn.secondary:hover {
   background-color: #7f8c8d;
 }
+.update-workshop-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: 5px;
+}
+
+.update-workshop-button:hover {
+  background-color: #45a049;
+}

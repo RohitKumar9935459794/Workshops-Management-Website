@@ -5,6 +5,16 @@ const db = require("../config/db");
 const xlsx = require("xlsx");
 const fs = require("fs");
 const path = require("path");
+require("dotenv").config({ path: "./.env" });
+
+
+
+const bodyParser = require("body-parser");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const nodemailer = require("nodemailer");
+const mysql = require("mysql2/promise");
+const cors = require("cors");
 
 
 
@@ -28,6 +38,28 @@ const path = require("path");
 //     "other2": "Option 2",
 //     "other3": "Option 3"
 //   }
+
+
+const app = express();
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(bodyParser.json());
+
+const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME
+});
+
+const JWT_SECRET = process.env.TOKEN_KEY;
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.RESET_EMAIL_SENDER,
+    pass: process.env.RESET_EMAIL_SENDER_PASS
+  }
+});
 
 // Function to generate workshop_id
 const generateWorkshopId = async (from_date, centre) => {
@@ -203,6 +235,69 @@ router.put("/workshops/:workshop_id", async (req, res) => {
   } catch (err) {
     await connection.rollback();
     res.status(500).json({ error: err.message });
+  } finally {
+    connection.release();
+  }
+});
+
+router.put("/participants/:workshop_id/:REGID", async (req, res) => {
+  const { REGID, workshop_id } = req.params;
+  const {
+    Name,
+    FATHERS_NAME,
+    HighestQualifications,
+    MobileNo,
+    Email,
+    Working,
+    Designation,
+    Department,
+    CollegeName,
+    Degree,
+  } = req.body;
+
+  const connection = await db.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    // 1. Check if participant exists
+    const [participant] = await connection.query(
+      `SELECT * FROM participant_details WHERE REGID = ? AND workshop_id = ?`,
+      [REGID, workshop_id]
+    );
+
+    if (participant.length === 0) {
+      return res.status(404).json({ error: "Participant not found" });
+    }
+
+    // 2. Update participant details
+    await connection.query(
+      `UPDATE participant_details SET 
+        Name = ?, FATHERS_NAME = ?, HighestQualifications = ?, MobileNo = ?, 
+        Email = ?, Working = ?, Designation = ?, Department = ?, 
+        CollegeName = ?, Degree = ?
+      WHERE REGID = ? AND workshop_id = ?`,
+      [
+        Name,
+        FATHERS_NAME,
+        HighestQualifications,
+        MobileNo,
+        Email,
+        Working,
+        Designation,
+        Department,
+        CollegeName,
+        Degree,
+        REGID,
+        workshop_id,
+      ]
+    );
+
+    await connection.commit();
+    res.json({ success: true, message: "Participant updated", REGID });
+  } catch (error) {
+    await connection.rollback();
+    res.status(500).json({ error: error.message });
   } finally {
     connection.release();
   }
@@ -736,5 +831,64 @@ router.get("/participants/reports/download", async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
+
+//Add forget password
+
+app.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const conn = await pool.getConnection();
+    const [rows] = await conn.query("SELECT id, email FROM users WHERE email = ?", [email]);
+
+    if (rows.length === 0) {
+      return res.json({ Status: "User not existed" });
+    }
+
+    const user = rows[0];
+    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "1d" });
+
+    const resetLink = `http://localhost:5173/reset_password/${user.id}/${token}`;
+    await transporter.sendMail({
+      from: process.env.RESET_EMAIL_SENDER,
+      to: user.email,
+      subject: "Reset Your Password",
+      html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>`
+    });
+
+    res.json({ Status: "Success", message: "Reset link sent to your email." });
+
+    conn.release();
+  } catch (err) {
+    console.error("Error in forgot-password:", err);
+    res.status(500).json({ Status: "Error", error: err.message });
+  }
+});
+
+
+
+app.post("/reset-password/:id/:token", async (req, res) => {
+  const { id, token } = req.params;
+  const { password } = req.body;
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.id != id) return res.status(400).json({ Status: "Invalid token or user mismatch" });
+
+    const hash = await bcrypt.hash(password, 10);
+    const conn = await pool.getConnection();
+
+    await conn.query("UPDATE users SET password = ? WHERE id = ?", [hash, id]);
+    conn.release();
+
+    res.json({ Status: "Success", message: "Password updated successfully." });
+  } catch (err) {
+    console.error("Error in reset-password:", err);
+    res.status(500).json({ Status: "Error", error: err.message });
+  }
+});
+
+
 
 module.exports = router;

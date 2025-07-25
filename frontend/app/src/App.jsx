@@ -64,6 +64,7 @@ import './App.css';
 import ParticipantTable from './components/ParticipantTable';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import RegisterUser from './components/RegisterUser'; // adjust path as needed
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -102,6 +103,7 @@ function App() {
               <Route path="/upload-participants" element={<UploadParticipants />} />
               <Route path="/participant-reports" element={<ParticipantTable />} />
               <Route path="/workshops/:workshop_id/participants" element={<WorkshopParticipant />} />
+               <Route path="/register" element={<RegisterUser />} /> 
             </Route>
             
             <Route path="*" element={<Navigate to="/login" replace />} />
